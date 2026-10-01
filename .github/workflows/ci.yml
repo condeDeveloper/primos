@@ -1,0 +1,37 @@
+name: testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  testes:
+    runs-on: ${{ matrix.so }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        so: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Os juizes sao catalogos publicados: pi(10^k) ate dez milhoes, as lacunas
+      # maximas entre primos ate cem milhoes com o primo exato de cada recorde, e
+      # os menores compostos que enganam o Miller-Rabin com as primeiras k bases.
+      # Mais a divisao por tentativa, que nao tem limite de tabela, e um segundo
+      # crivo que nao se parece com o primeiro.
+      - name: testes
+        run: dotnet test testes/Primos.Testes/Primos.Testes.csproj -c Release --nologo -v q
+
+      # As medidas rodam para REGISTRAR numeros. Nao ha asseveracao de tempo.
+      - name: pi(x) contra as duas aproximacoes classicas
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release --nologo -- contar
+
+      - name: o ro de Pollard contra a divisao por tentativa
+        run: dotnet run --project ferramentas/Medidor/Medidor.csproj -c Release --nologo -- fatorar
